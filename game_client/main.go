@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"math"
 	"math/rand"
@@ -63,6 +64,17 @@ func main() {
 		log.Fatal(err)
 	}
 
+	go func() {
+		var msg types.WSMessage
+		for {
+			if err := conn.ReadJSON(&msg); err != nil {
+				fmt.Println("WS read error: ", err)
+				continue
+			}
+			fmt.Println("got message from the server: ", msg)
+		}
+	}()
+
 	for {
 		x := rand.Intn(1000)
 		y := rand.Intn(1000)
@@ -83,6 +95,6 @@ func main() {
 		if err := conn.WriteJSON(msg); err != nil {
 			log.Fatal(err)
 		}
-		time.Sleep(time.Millisecond * 100)
+		time.Sleep(time.Second)
 	}
 }

@@ -36,11 +36,26 @@ func (s *PlayerSession) Receive(c *actor.Context) {
 	switch msg := c.Message().(type) {
 	case actor.Started:
 		s.ctx = c
-		s.readLoop()
+		go s.readLoop()
 	case *types.PlayerState:
-		fmt.Println("i just received the state of natoher player", msg.SessionID)
+		// fmt.Println("i just received the state of natoher player", msg.SessionID)
+		s.sendPlayerState(msg)
 	default:
 		fmt.Println("recv", msg)
+	}
+}
+
+func (s *PlayerSession) sendPlayerState(state *types.PlayerState) {
+	b, err := json.Marshal(state)
+	if err != nil {
+		panic(err)
+	}
+	msg := types.WSMessage{
+		Type: "state",
+		Data: b,
+	}
+	if err := s.conn.WriteJSON(msg); err != nil {
+		panic(err)
 	}
 }
 
@@ -107,7 +122,7 @@ func (s *GameServer) bcast(from *actor.PID, state *types.PlayerState) {
 	// fmt.Println("recv from", from)
 	for _, pid := range s.sessions {
 		if !pid.Equals(from) {
-			fmt.Println("sending state to player", pid)
+			// fmt.Println("sending state to player", pid)
 			s.ctx.Send(pid, state)
 		}
 	}
