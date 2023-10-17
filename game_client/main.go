@@ -71,7 +71,19 @@ func main() {
 				fmt.Println("WS read error: ", err)
 				continue
 			}
-			fmt.Println("got message from the server: ", msg)
+			switch msg.Type {
+			case "state":
+				var state types.PlayerState
+				if err := json.Unmarshal(msg.Data, &state); err != nil {
+					fmt.Println("WS read error: ", err)
+					continue
+				}
+
+				fmt.Println("need to update the state of player", state)
+			default:
+				fmt.Println("receiving mssage we dont know")
+			}
+			// fmt.Println("got message from the server: ", msg)
 		}
 	}()
 
